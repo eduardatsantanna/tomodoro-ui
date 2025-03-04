@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import HBox from './HBox';
+import playSound from '../utils/soundPlayer';
 
 interface Task {
   id: number;
@@ -14,45 +16,84 @@ const TaskList: React.FC = () => {
     if (taskTitle.trim()) {
       setTasks([...tasks, { id: Date.now(), title: taskTitle, completed: false }]);
       setTaskTitle('');
+      playSound('add-task', false);
     }
   };
 
   const toggleTaskCompletion = (id: number) => {
     setTasks((prevTasks) =>
-      prevTasks.map((task) => (task.id === id ? { ...task, completed: !task.completed } : task))
+      prevTasks.map((task) => {
+        if (task.id === id) {
+          const isNowCompleted = !task.completed; // Check if it's being completed now
+  
+          if (isNowCompleted) {
+            playSound('task-completed', true); // Play sound when marking as completed
+          }
+  
+          return { ...task, completed: isNowCompleted };
+        }
+        return task;
+      })
+    );
+  };  
+
+  interface CheckboxProps {
+    label: string;
+    checked: boolean;
+    onChange: (checked: boolean) => void;
+  }
+
+  const [isChecked, setIsChecked] = useState(false);
+
+  const Checkbox: React.FC<CheckboxProps> = ({ label, checked, onChange }) => {
+    return (
+      <label className="cozy-checkbox-label">
+        <input type="checkbox" className="cozy-checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)}
+        />
+        <span className="checkbox-box"></span>
+        {label}
+      </label>
     );
   };
 
+  const deleteTask = (id: number) => {
+    playSound('delete-task', false);
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+  };
+
   return (
-    <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+    <div style={{ textAlign: 'center', marginTop: '2rem', fontSize: '1.3rem' }}>
       <h3>Task List</h3>
-      <input
-        type="text"
-        value={taskTitle}
-        onChange={(e) => setTaskTitle(e.target.value)}
-        placeholder="Add a new task"
-        className="cozy-input"
-      />
-      <button className="cozy-btn" onClick={addTask}>Add</button>
-      <ul style={{ listStyle: 'none', padding: 0, marginTop: '1rem' }}>
-        {tasks.map((task) => (
-          <li
-            key={task.id}
-            style={{
-              textDecoration: task.completed ? 'line-through' : 'none',
-              marginBottom: '0.5rem',
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={task.completed}
-              onChange={() => toggleTaskCompletion(task.id)}
-              style={{ marginRight: '0.5rem' }}
-            />
-            {task.title}
-          </li>
-        ))}
-      </ul>
+      <div id="tasksContainer" style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "auto",
+      }}
+      >
+        <div style={{ width: "100%", maxWidth: "400px" }}>
+          <HBox gap={1}>
+            <input type="text" value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} placeholder="Add a new task" className="cozy-input" />
+            <button className="cozy-btn" onClick={addTask}>Add</button>
+          </HBox>
+
+          <ul id="taskList">
+            {tasks.map((task) => (
+              <li id="listItem" key={task.id}>
+                <HBox justify="space-between">
+                  <Checkbox label={task.title} checked={task.completed} onChange={() => toggleTaskCompletion(task.id)}
+                  />
+                  <button className="cozy-btn delete-btn" onClick={() => deleteTask(task.id)} title="Remove Task">
+                    <img src="/assets/trash-icon-2.png" alt="Trash" style={{ width: '20px', height: '27px' }} />
+                  </button>
+
+                </HBox>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 };

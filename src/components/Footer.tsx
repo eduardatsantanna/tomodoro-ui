@@ -8,7 +8,6 @@ const Footer: React.FC = () => {
         padding: '1rem',
         backgroundColor: '#f4e7c3', // Soft warm beige for Stardew-inspired vibe
         color: '#3d2e1e', // Warm brown for text
-        borderTop: '3px solid #a67c52', // Rustic border color
       }}
     >
 

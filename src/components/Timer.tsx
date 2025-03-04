@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import playSound from '../utils/soundPlayer';
 
 const Timer: React.FC = () => {
-  const [time, setTime] = useState(25 * 60); // 25 minutes in seconds
+  const POMODORO_TIME = 25 * 60;
+  const SHORT_BREAK_TIME = 5 * 60;
+  const LONG_BREAK_TIME = 15 * 60;
+
+  const [time, setTime] = useState(POMODORO_TIME);
   const [isRunning, setIsRunning] = useState(false);
+  const [mode, setMode] = useState<'pomodoro' | 'short_break' | 'long_break'>('pomodoro');
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -14,11 +20,33 @@ const Timer: React.FC = () => {
     return () => clearInterval(timer);
   }, [isRunning]);
 
-  const toggleTimer = () => setIsRunning(!isRunning);
+  const toggleTimer = () => {
+    playSound('start/stop', isRunning); // Play start/stop sound
+    setIsRunning(!isRunning);
+  };
 
   const resetTimer = () => {
+    playSound('reset', isRunning); // Play reset sound
     setIsRunning(false);
-    setTime(25 * 60);
+    setTime(getModeTime(mode));
+  };
+
+  const handleModeChange = (selectedMode: 'pomodoro' | 'short_break' | 'long_break') => {
+    playSound(selectedMode, false);
+    setIsRunning(false);
+    setMode(selectedMode);
+    setTime(getModeTime(selectedMode));
+  };
+
+  const getModeTime = (mode: string) => {
+    switch (mode) {
+      case 'short_break':
+        return SHORT_BREAK_TIME;
+      case 'long_break':
+        return LONG_BREAK_TIME;
+      default:
+        return POMODORO_TIME;
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -28,8 +56,30 @@ const Timer: React.FC = () => {
   };
 
   return (
-    <div style={{ textAlign: 'center', margin: '0rem 0' }}>
+    <div style={{ textAlign: 'center', fontSize: '2.2rem' }}>
+      <div style={{ marginBottom: '1rem' }}>
+        <button
+          className={`button timer-button ${mode === 'pomodoro' ? 'active' : ''}`}
+          onClick={() => handleModeChange('pomodoro')}
+        >
+          Pomodoro
+        </button>
+        <button
+          className={`button timer-button ${mode === 'short_break' ? 'active' : ''}`}
+          onClick={() => handleModeChange('short_break')}
+        >
+          Short Break
+        </button>
+        <button
+          className={`button timer-button ${mode === 'long_break' ? 'active' : ''}`}
+          onClick={() => handleModeChange('long_break')}
+        >
+          Long Break
+        </button>
+      </div>
+
       <h2>{formatTime(time)}</h2>
+
       <button className="button start-button" onClick={toggleTimer} style={{ marginRight: '1rem' }}>
         {isRunning ? 'Pause' : 'Start'}
       </button>

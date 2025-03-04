@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 
 const HomePage: React.FC = () => {
   return (
-    <div>
+    <div id="app">
       <Header />
       <main>
         <Timer />
