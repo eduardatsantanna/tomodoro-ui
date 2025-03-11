@@ -26,6 +26,9 @@ const playSound = (buttonType: string, toggle: boolean) => {
       case 'long_break':
         audio = new Audio('/sounds/mouseClick.wav');
         break;
+      case 'timeout':
+        audio = new Audio('/sounds/questcomplete.wav');
+        break;
       default:
         return;
     }
