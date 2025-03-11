@@ -2,37 +2,73 @@ import React, { useState, useEffect } from 'react';
 import playSound from '../utils/soundPlayer';
 
 const Timer: React.FC = () => {
-  const POMODORO_TIME = 25 * 60;
+  const POMODORO_TIME = 25 * 60; // Test value
   const SHORT_BREAK_TIME = 5 * 60;
   const LONG_BREAK_TIME = 15 * 60;
 
   const [time, setTime] = useState(POMODORO_TIME);
   const [isRunning, setIsRunning] = useState(false);
   const [mode, setMode] = useState<'pomodoro' | 'short_break' | 'long_break'>('pomodoro');
+  const [silentReset, setSilentReset] = useState(false);
+
+  useEffect(() => {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isRunning) {
       timer = setInterval(() => {
-        setTime((prev) => (prev > 0 ? prev - 1 : 0));
+        setTime((prev) => {
+          if (prev > 0) return prev - 1;
+
+          triggerNotification();
+          playSound('timer-end', false);
+
+          setIsRunning(false);
+          setSilentReset(true);
+
+          setTimeout(() => {
+            if (mode === 'short_break' || mode === 'long_break') {
+              handleModeChange('pomodoro');
+            } else {
+              handleModeChange(mode);
+            }
+            setSilentReset(false);
+          }, 2000);
+
+          return 0;
+        });
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [isRunning]);
+  }, [isRunning, mode]);
+
+  const triggerNotification = () => {
+    if (Notification.permission === 'granted') {
+      new Notification('⏳ Time’s Up!', {
+        body: `Your ${mode.replace('_', ' ')} session has ended.`,
+        icon: '/assets/tomodoro_logo.png',
+      });
+    }
+    playSound('timeout', isRunning);
+  };
 
   const toggleTimer = () => {
-    playSound('start/stop', isRunning); // Play start/stop sound
+    playSound('start/stop', isRunning);
     setIsRunning(!isRunning);
   };
 
   const resetTimer = () => {
-    playSound('reset', isRunning); // Play reset sound
+    if (!silentReset) playSound('reset', isRunning);
     setIsRunning(false);
     setTime(getModeTime(mode));
   };
 
   const handleModeChange = (selectedMode: 'pomodoro' | 'short_break' | 'long_break') => {
-    playSound(selectedMode, false);
+    if (!silentReset) playSound(selectedMode, false);
     setIsRunning(false);
     setMode(selectedMode);
     setTime(getModeTime(selectedMode));
