@@ -18,7 +18,7 @@ const Timer: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setInterval>;
     if (isRunning) {
       timer = setInterval(() => {
         setTime((prev) => {
