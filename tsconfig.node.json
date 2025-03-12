@@ -1,8 +1,11 @@
 {
   "compilerOptions": {
+    "types": ["jest", "node"],
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "target": "ES2022",
-    "lib": ["ES2023"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"], // ✅ Ensure "DOM" is included
     "module": "ESNext",
     "skipLibCheck": true,
 
@@ -20,5 +23,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "tests"]
 }
